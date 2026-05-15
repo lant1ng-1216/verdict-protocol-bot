@@ -1,6 +1,3 @@
-要，点 **Add a README** 按钮，然后把这段内容粘贴进去：全部复制这段内容，粘贴到 GitHub 的 README 编辑器里，然后点 **Commit changes**：
-
-```
 # ⚖️ Verdict Protocol — Meme Court Bot
 
 > **The On-Chain Tribunal. Every wallet gets judged.**
