@@ -334,7 +334,7 @@ function IssueModal({ t, onClose }: { t: typeof LANG['en']; onClose: () => void 
   const [selectedChain, setSelectedChain] = useState<typeof CHAINS[0] | null>(null);
   const [stake, setStake] = useState('');
   const [duration, setDuration] = useState('7');
-  const [durationUnit, setDurationUnit] = useState(m.durationUnits[0]);
+  const [durationUnit, setDurationUnit] = useState<string>(m.durationUnits[0]);
   const [visibility, setVisibility] = useState<'public' | 'private' | 'ai'>('public');
   const presetDays = [7, 14, 30, 90];
 
@@ -383,7 +383,7 @@ function IssueModal({ t, onClose }: { t: typeof LANG['en']; onClose: () => void 
               <input type="number" min="1" step="1" value={duration}
                 onChange={e => { const v = parseInt(e.target.value); if (v >= 1 || e.target.value === '') setDuration(e.target.value); }}
                 className="flex-1 bg-[#10101e] border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white/80 outline-none focus:border-red-400/50" />
-              <select value={durationUnit} onChange={e => setDurationUnit(e.target.value)}
+              <select value={durationUnit} onChange={e => setDurationUnit(e.target.value as string)}
                 className="bg-[#10101e] border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white/80 outline-none focus:border-red-400/50">
                 {m.durationUnits.map(u => <option key={u}>{u}</option>)}
               </select>
