@@ -19,6 +19,7 @@ const CHAINS = [
 const LANG = {
   en: {
     appName: 'Protocol Bet', arena: 'Arena', live: 'Live',
+    connectWallet: 'Connect Wallet',
     issueBtn: '+ Issue a Duel', loadMore: 'Load more duels', backToArena: '← Back to Arena',
     filters: ['All', 'Hot 🔥', 'Ending soon', 'High stakes'],
     stats: { duels: 'Total Duels', pool: 'Prize Pool Today', settled: 'Total Settled' },
@@ -117,6 +118,7 @@ const LANG = {
   },
   zh: {
     appName: 'Protocol Bet', arena: '擂台', live: '实时',
+    connectWallet: '连接钱包',
     issueBtn: '+ 发起对决', loadMore: '加载更多对决', backToArena: '← 返回广场',
     filters: ['全部', '热门 🔥', '即将结束', '高额对赌'],
     stats: { duels: '总对决场次', pool: '今日奖池', settled: '已结算总额' },
@@ -224,14 +226,14 @@ interface Duel {
   id: string; type: DuelType; rarity: Rarity; status: Status;
   challenger: { name: string; addr: string; color: string; amount: number };
   defender: { name: string; addr: string; color: string; amount: number } | null;
-  supportRed: number; watchers: number; expires: string; network: string; index: number;
+  supportRed: number; watchers: number; expires: string; network: string; token: string; index: number;
   isAIJudge?: boolean;
 }
 
 const DUELS: Duel[] = [
-  { id: '0039', type: 'friendsBet', rarity: 'common', status: 'open', challenger: { name: '@devlanting', addr: '0x9a...b33f', color: '#1a5a1a', amount: 0.5 }, defender: null, supportRed: 71, watchers: 23, expires: '29d · 04h', network: 'BNB Chain', index: 1 },
-  { id: '0041', type: 'communityWar', rarity: 'rare', status: 'ending', challenger: { name: 'MantleDAO', addr: '0x4c...de12', color: '#4a1a00', amount: 0.75 }, defender: { name: 'ArbiDAO', addr: '0x7e...aa99', color: '#1a2a4a', amount: 0.75 }, supportRed: 55, watchers: 312, expires: '02h · 14m', network: 'Mantle', index: 2 },
-  { id: '0038', type: 'personalChallenge', rarity: 'common', status: 'new', challenger: { name: '@zen_mode', addr: '0x2b...f091', color: '#0a1a4a', amount: 0.3 }, defender: null, supportRed: 48, watchers: 9, expires: '30d · 00h', network: 'Mantle', index: 3, isAIJudge: true },
+  { id: '0039', type: 'friendsBet', rarity: 'common', status: 'open', challenger: { name: '@devlanting', addr: '0x9a...b33f', color: '#1a5a1a', amount: 0.5 }, defender: null, supportRed: 71, watchers: 23, expires: '29d · 04h', network: 'BNB Chain', token: 'BNB', index: 1 },
+  { id: '0041', type: 'communityWar', rarity: 'rare', status: 'ending', challenger: { name: 'MantleDAO', addr: '0x4c...de12', color: '#4a1a00', amount: 0.75 }, defender: { name: 'ArbiDAO', addr: '0x7e...aa99', color: '#1a2a4a', amount: 0.75 }, supportRed: 55, watchers: 312, expires: '02h · 14m', network: 'Mantle', token: 'ETH', index: 2 },
+  { id: '0038', type: 'personalChallenge', rarity: 'common', status: 'new', challenger: { name: '@zen_mode', addr: '0x2b...f091', color: '#0a1a4a', amount: 0.3 }, defender: null, supportRed: 48, watchers: 9, expires: '30d · 00h', network: 'Mantle', token: 'MNT', index: 3, isAIJudge: true },
 ];
 
 const typeStyle: Record<DuelType, string> = {
@@ -336,6 +338,8 @@ function IssueModal({ t, onClose }: { t: typeof LANG['en']; onClose: () => void 
   const [duration, setDuration] = useState('7');
   const [durationUnit, setDurationUnit] = useState<string>(m.durationUnits[0]);
   const [visibility, setVisibility] = useState<'public' | 'private' | 'ai'>('public');
+  const [audienceRatio, setAudienceRatio] = useState(0);
+  const winnerPct = 100 - audienceRatio;
   const presetDays = [7, 14, 30, 90];
 
   const visOptions = [
@@ -396,6 +400,35 @@ function IssueModal({ t, onClose }: { t: typeof LANG['en']; onClose: () => void 
                 </button>
               ))}
             </div>
+          </div>
+          {/* AUDIENCE RATIO */}
+          <div className="bg-yellow-400/5 border border-yellow-400/20 rounded-xl p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-[9px] tracking-widest uppercase text-yellow-400/60">对决池分配比例</div>
+              <div className="text-base font-bold text-yellow-400">{audienceRatio}%</div>
+            </div>
+            <input type="range" min="0" max="100" step="5" value={audienceRatio}
+              onChange={e => setAudienceRatio(Number(e.target.value))}
+              className="w-full mb-3 accent-yellow-400" />
+            <div className="grid grid-cols-2 gap-2 mb-3">
+              <div className="bg-red-400/8 border border-red-400/20 rounded-lg p-2.5 text-center">
+                <div className="text-[7px] tracking-widest uppercase text-red-400/50 mb-1">赢家获得</div>
+                <div className="text-base font-bold text-red-400">{winnerPct}%</div>
+                <div className="text-[8px] text-red-400/40">对决池</div>
+              </div>
+              <div className="bg-blue-400/8 border border-blue-400/20 rounded-lg p-2.5 text-center">
+                <div className="text-[7px] tracking-widest uppercase text-blue-400/50 mb-1">观众瓜分</div>
+                <div className="text-base font-bold text-blue-400">{audienceRatio}%</div>
+                <div className="text-[8px] text-blue-400/40">对决池</div>
+              </div>
+            </div>
+            <p className="text-[10px] text-white/25 leading-relaxed">
+              {audienceRatio === 0
+                ? '赢家独得 100% 对决池，观众押注收益来自独立的观众池。'
+                : audienceRatio === 100
+                ? '赢家放弃全部收益，100% 对决池归押对的观众瓜分。'
+                : `赢家获得对决池的 ${winnerPct}%，押对的观众瓜分 ${audienceRatio}%。`}
+            </p>
           </div>
           <div>
             <div className="text-[9px] tracking-widest uppercase text-white/30 mb-2">{m.visibilityLabel}</div>
@@ -489,7 +522,7 @@ const LIVE_EVENTS = [
   {text:'New data: Mantle +$13M', side:'r'},{text:'BlockWizard: fundamentals hold', side:'b'},
 ];
 
-function LiveCard({ t }: { t: typeof LANG['en'] }) {
+function LiveCard({ t, onEnter }: { t: typeof LANG['en']; onEnter: () => void }) {
   const timer = useCountdown(LIVE_DUEL.expires);
   const lt = t.liveCard;
   const et = t.events;
@@ -584,7 +617,7 @@ function LiveCard({ t }: { t: typeof LANG['en'] }) {
             </div>
           </div>
           <div className="flex-shrink-0">
-            <button className="px-3 py-1.5 rounded-lg text-[10px] font-semibold text-red-400 border border-red-400/40 bg-red-400/10 hover:bg-red-400/20 transition-colors whitespace-nowrap">{lt.enterDuel}</button>
+            <button onClick={onEnter} className="px-3 py-1.5 rounded-lg text-[10px] font-semibold text-red-400 border border-red-400/40 bg-red-400/10 hover:bg-red-400/20 transition-colors whitespace-nowrap">{lt.enterDuel}</button>
           </div>
         </div>
 
@@ -626,9 +659,17 @@ function LiveCard({ t }: { t: typeof LANG['en'] }) {
           <div className="flex flex-col items-center justify-center gap-2 px-3" style={{ position: 'relative' }}>
             <div className="w-px h-6 bg-gradient-to-b from-transparent via-white/10 to-transparent" />
             <span className="text-[11px] font-bold text-white/15 tracking-widest">VS</span>
-            <div className="bg-red-400/15 border border-red-400/25 rounded-lg px-2 py-1 text-center">
-              <div className="text-sm font-bold text-red-400">2.0</div>
-              <div className="text-[6px] text-red-400/50 tracking-widest uppercase">ETH pot</div>
+            <div className="flex items-center gap-1.5">
+              <div className="bg-red-400/15 border border-red-400/25 rounded-lg px-2 py-1.5 text-center" style={{minWidth:'56px'}}>
+                <div className="text-[6px] tracking-widest uppercase text-red-400/50 mb-1">对决池</div>
+                <div className="text-sm font-bold text-red-400">2.0</div>
+                <div className="text-[7px] font-semibold text-red-400/60">ETH</div>
+              </div>
+              <div className="bg-blue-400/15 border border-blue-400/25 rounded-lg px-2 py-1.5 text-center" style={{minWidth:'56px'}}>
+                <div className="text-[6px] tracking-widest uppercase text-blue-400/50 mb-1">观众池</div>
+                <div className="text-sm font-bold text-blue-400">4.8</div>
+                <div className="text-[7px] font-semibold text-blue-400/60">ETH</div>
+              </div>
             </div>
             <div className="w-px h-6 bg-gradient-to-b from-transparent via-white/10 to-transparent" />
             {/* EVENT BUBBLE */}
@@ -861,19 +902,24 @@ function DuelCard({ duel, t, onClick, onEnter }: { duel: Duel; t: typeof LANG['e
             <div className="text-[8px] text-white/25 font-mono truncate">{duel.challenger.addr}</div>
             <div className="flex items-center gap-1.5 mt-0.5">
               <span className="text-[17px] font-bold text-red-400 leading-none">{duel.challenger.amount}</span>
-              <span className={`text-[8px] font-semibold px-1.5 py-0.5 rounded border ${isAI ? 'text-purple-400/70 border-purple-400/20 bg-purple-400/8' : 'text-red-400/70 border-red-400/20 bg-red-400/8'}`}>{duel.network.includes('BNB') ? 'BNB' : 'ETH'}</span>
+              <span className={`text-[8px] font-semibold px-1.5 py-0.5 rounded border ${isAI ? 'text-purple-400/70 border-purple-400/20 bg-purple-400/8' : 'text-red-400/70 border-red-400/20 bg-red-400/8'}`}>{duel.token}</span>
             </div>
           </div>
         </div>
-        <div className="flex flex-col items-center gap-1.5 px-1">
+        <div className="flex flex-col items-center gap-1 px-1">
           <div className="w-px h-2 bg-white/10" />
           <span className="text-[9px] font-medium text-white/15 tracking-widest">VS</span>
-          <div className={`rounded-lg px-2 py-1.5 text-center ${isAI ? 'bg-purple-400/10 border border-purple-400/20' : 'bg-red-400/10 border border-red-400/20'}`}>
-            <div className={`text-[9px] font-bold leading-none ${isAI ? 'text-purple-400' : 'text-red-400'}`}>{duel.challenger.amount + (duel.defender?.amount ?? duel.challenger.amount)}</div>
-            <div className={`text-[5px] tracking-widest uppercase mt-0.5 opacity-50 ${isAI ? 'text-purple-400' : 'text-red-400'}`}>底池</div>
-            <div className="w-full h-px bg-white/10 my-1" />
-            <div className={`text-[11px] font-bold leading-none ${isAI ? 'text-purple-400' : 'text-red-400'}`}>{((duel.challenger.amount + (duel.defender?.amount ?? duel.challenger.amount)) * (1 + duel.watchers * 0.003)).toFixed(2)}</div>
-            <div className={`text-[5px] tracking-widest uppercase mt-0.5 opacity-50 ${isAI ? 'text-purple-400' : 'text-red-400'}`}>总奖池</div>
+          <div className="flex items-center gap-1">
+            <div className={`rounded-lg px-1.5 py-1 text-center ${isAI ? 'bg-purple-400/10 border border-purple-400/20' : 'bg-red-400/10 border border-red-400/20'}`} style={{minWidth:'50px'}}>
+              <div className={`text-[6px] tracking-widest uppercase mb-1 ${isAI ? 'text-purple-400/50' : 'text-red-400/50'}`}>对决池</div>
+              <div className={`text-[10px] font-bold leading-none ${isAI ? 'text-purple-400' : 'text-red-400'}`}>{duel.challenger.amount + (duel.defender?.amount ?? duel.challenger.amount)}</div>
+              <div className={`text-[7px] font-semibold mt-0.5 ${isAI ? 'text-purple-400/60' : 'text-red-400/60'}`}>{duel.token}</div>
+            </div>
+            <div className="bg-blue-400/10 border border-blue-400/20 rounded-lg px-1.5 py-1 text-center" style={{minWidth:'50px'}}>
+              <div className="text-[6px] tracking-widest uppercase text-blue-400/50 mb-1">观众池</div>
+              <div className="text-[10px] font-bold leading-none text-blue-400">{((duel.challenger.amount + (duel.defender?.amount ?? duel.challenger.amount)) * (1 + duel.watchers * 0.003)).toFixed(2)}</div>
+              <div className="text-[7px] font-semibold mt-0.5 text-blue-400/60">{duel.token}</div>
+            </div>
           </div>
           <div className="w-px h-2 bg-white/10" />
         </div>
@@ -898,7 +944,7 @@ function DuelCard({ duel, t, onClick, onEnter }: { duel: Duel; t: typeof LANG['e
                 <div className="text-[11px] font-semibold text-purple-400">AI Judge</div>
                 <div className="text-[8px] text-white/25 truncate">{ac.treasury}</div>
                 <div className="flex items-center gap-1.5 mt-0.5 justify-end">
-                  <span className="text-[8px] font-semibold px-1.5 py-0.5 rounded border text-purple-400/70 border-purple-400/20 bg-purple-400/8">{duel.network.includes('BNB') ? 'BNB' : 'ETH'}</span>
+                  <span className="text-[8px] font-semibold px-1.5 py-0.5 rounded border text-purple-400/70 border-purple-400/20 bg-purple-400/8">{duel.token}</span>
                   <span className="text-[17px] font-bold text-purple-400 leading-none">{duel.challenger.amount}</span>
                 </div>
               </>
@@ -947,11 +993,6 @@ function DuelCard({ duel, t, onClick, onEnter }: { duel: Duel; t: typeof LANG['e
       {/* STATS */}
       <div className="mx-3 border-t border-white/5" style={{ display: 'grid', gridTemplateColumns: '1fr 1px 1fr 1px 1fr' }}>
         <div className="py-2 text-center">
-          <div className="text-[6px] tracking-widest uppercase text-white/20 mb-0.5">{t.card.pot}</div>
-          <div className={`text-[10px] font-bold ${isAI ? 'text-purple-400' : 'text-red-400'}`}>{duel.challenger.amount + (duel.defender?.amount ?? duel.challenger.amount)} {duel.network.includes('BNB') ? 'BNB' : 'ETH'}</div>
-        </div>
-        <div className="bg-white/5" />
-        <div className="py-2 text-center">
           <div className="text-[6px] tracking-widest uppercase text-white/20 mb-0.5">{isAI ? ac.reward : t.card.watching}</div>
           <div className={`text-[10px] font-bold ${isAI ? 'text-purple-400' : duel.watchers > 100 ? 'text-orange-400' : 'text-white/40'}`}>{isAI ? '$VRD' : `${duel.watchers > 100 ? '🔥 ' : ''}${duel.watchers}`}</div>
         </div>
@@ -959,6 +1000,11 @@ function DuelCard({ duel, t, onClick, onEnter }: { duel: Duel; t: typeof LANG['e
         <div className="py-2 text-center">
           <div className="text-[6px] tracking-widest uppercase text-white/20 mb-0.5">{t.card.expires}</div>
           <div className={`text-[10px] font-bold ${duel.status === 'ending' ? 'text-orange-400' : 'text-white/40'}`}>{duel.expires}</div>
+        </div>
+        <div className="bg-white/5" />
+        <div className="py-2 text-center">
+          <div className="text-[6px] tracking-widest uppercase text-white/20 mb-0.5">参与人数</div>
+          <div className="text-[10px] font-bold text-white/40">{Math.floor(duel.watchers * 0.3)}</div>
         </div>
       </div>
       {/* WATCHERS + NETWORK */}
@@ -996,7 +1042,7 @@ function DuelModal({ duel, t, onClose }: { duel: Duel; t: typeof LANG['en']; onC
   const ac = t.aiCard;
   const [selectedSide, setSelectedSide] = useState<'red' | 'blue' | null>(null);
   const [stake, setStake] = useState('');
-  const token = duel.network.includes('BNB') ? 'BNB' : 'ETH';
+  const token = duel.token;
   const totalPot = duel.challenger.amount + (duel.defender?.amount ?? duel.challenger.amount);
   const stakeNum = parseFloat(stake) || 0;
   const supportingPool = selectedSide === 'red'
@@ -1166,7 +1212,19 @@ export default function Home() {
           <button onClick={() => setLang(l => l === 'en' ? 'zh' : 'en')} className="text-xs text-white/40 bg-[#10101e] border border-white/10 rounded-lg px-3 py-1.5 hover:border-white/20 transition-colors">
             {lang === 'en' ? '中文' : 'EN'}
           </button>
-          <ConnectButton />
+          <ConnectButton.Custom>
+            {({ account, chain, openAccountModal, openChainModal, openConnectModal, mounted }) => {
+              const connected = mounted && account && chain;
+              return (
+                <button
+                  onClick={connected ? openAccountModal : openConnectModal}
+                  className="text-xs font-semibold text-red-400 bg-red-400/10 border border-red-400/40 rounded-lg px-3 py-1.5 hover:bg-red-400/20 transition-colors whitespace-nowrap"
+                >
+                  {connected ? `${account.displayName}` : t.connectWallet}
+                </button>
+              );
+            }}
+          </ConnectButton.Custom>
         </div>
       </div>
 
@@ -1192,7 +1250,12 @@ export default function Home() {
         </button>
       </div>
 
-      <div className="p-4"><LiveCard t={t} /></div>
+      <div className="p-4"><LiveCard t={t} onEnter={() => setSelectedDuel({
+        id: '0042', type: 'kolBattle', rarity: 'legendary', status: 'live',
+        challenger: { name: '@CryptoKing', addr: '0x3f...a21c', color: '#6a1a1a', amount: 2.0 },
+        defender: { name: '@BlockWizard', addr: '0x8b...cc44', color: '#1a1a6a', amount: 2.0 },
+        supportRed: 63, watchers: 875, expires: '44d · 08h', network: 'Mantle', token: 'ETH', index: 0, isAIJudge: false,
+      })} /></div>
 
       <div className="px-4 pb-2">
         <div className="text-[9px] tracking-widest uppercase text-white/20 mb-3">All Duels</div>
